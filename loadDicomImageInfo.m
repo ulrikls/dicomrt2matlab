@@ -19,7 +19,7 @@ for i  = 1:length(imagefiles)
     
   catch ME
     % Don't display errors about files not in DICOM format.
-    if ~strcmp(ME.identifier, 'images:dicominfo:notDICOM')
+    if ~strcmpi(ME.identifier, 'Images:dicominfo:notDICOM')
       warning(ME.identifier, ME.message);
     end
   end

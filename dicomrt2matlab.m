@@ -14,16 +14,17 @@ files_out = {};
 
 %% Load DICOM headers
 rtssheader = dicominfo(rtssfile);
-imgheaders = loadDicomImageInfo(imagedir, rtssheader.StudyInstanceUID);
+imageheaders = loadDicomImageInfo(imagedir, rtssheader.StudyInstanceUID);
 
 
 %% Read contour sequences
-contours = readRTstructures(rtssheader, imgheaders);
-%contours = convexPoints2bin(contours, imgheaders);
+contours = readRTstructures(rtssheader, imageheaders);
+%contours = convexPoints2bin(contours, imageheaders);
 
 
 %% Save segmentations
 [~, name, ~] = fileparts(rtssfile);
-save([name '.mat'], 'contours', 'rtssheader', 'imageheaders', '-v7.3');
+files_out = [imagedir filesep name '.mat'];
+save(files_out, 'contours', 'rtssheader', 'imageheaders', '-v7.3');
 
 
