@@ -3,8 +3,6 @@ function contours = convexPoints2bin(contours, imgheaders)
 %%
 xfm = getAffineXfm(imgheaders);
 
-d = xfm * [1 1 1 0]';
-
 dimmin = [0 0 0 1]';
 dimmax = double([imgheaders{1}.Columns-1 imgheaders{1}.Rows-1 length(imgheaders)-1 1])';
 
@@ -20,13 +18,12 @@ for i = 1:length(contours)
     gridpoints = xfm \ [contours(i).Points ones(length(contours(i).Points), 1)]';
     minvox = max(floor(min(gridpoints, [], 2)), dimmin);
     maxvox = min( ceil(max(gridpoints, [], 2)), dimmax);
-    minwld = xfm * minvox;
-    maxwld = xfm * maxvox;
-    [x,y,z] = meshgrid(minwld(1):d(1):maxwld(1), minwld(2):d(2):maxwld(2), minwld(3):d(3):maxwld(3));
+    [x,y,z] = meshgrid(minvox(1):maxvox(1), minvox(2):maxvox(2), minvox(3):maxvox(3));
+    points = xfm * [x(:) y(:) z(:) ones(size(x(:)))]';
     
     %% Triangulate and make binary image
     DT = DelaunayTri(contours(i).Points);
-    mask = ~isnan(pointLocation(DT, x(:), y(:), z(:)));
+    mask = ~isnan(pointLocation(DT, points(1,:)', points(2,:)', points(3,:)'));
     mask = reshape(mask, size(x));
     
     %% Pad to image dimensions

@@ -18,13 +18,13 @@ imageheaders = loadDicomImageInfo(imagedir, rtssheader.StudyInstanceUID);
 
 
 %% Read contour sequences
-contours = readRTstructures(rtssheader, imageheaders);
-%contours = convexPoints2bin(contours, imageheaders);
+contours = readRTstructures(rtssheader, imageheaders); %#ok<NASGU>
+%contours = convexPoints2bin(contours, imageheaders); %#ok<NASGU>
 
 
 %% Save segmentations
 [~, name, ~] = fileparts(rtssfile);
-files_out = [imagedir filesep name '.mat'];
-save(files_out, 'contours', 'rtssheader', 'imageheaders', '-v7.3');
+files_out{1} = [imagedir filesep name '.mat'];
+save(files_out{1}, 'contours', 'rtssheader', 'imageheaders', '-v7.3');
 
 

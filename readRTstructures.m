@@ -1,15 +1,19 @@
 function contours = readRTstructures(rtssheader, imgheaders)
 
+%%
 xfm = getAffineXfm(imgheaders);
+
+dimmin = [0 0 0 1]';
+dimmax = double([imgheaders{1}.Columns-1 imgheaders{1}.Rows-1 length(imgheaders)-1 1])';
+
+template = false([imgheaders{1}.Rows imgheaders{1}.Columns length(imgheaders)]);
 
 ROIContourSequence = fieldnames(rtssheader.ROIContourSequence);
 contours = struct('ROIName', {}, 'Points', {}, 'VoxPoints', {}, 'Segmentation', {});
 
-template = false([imgheaders{1}.Rows imgheaders{1}.Columns length(imgheaders)]);
-
 
 %% Loop through contours
-for i = 1:length(ROIContourSequence)
+for i = 9%1:length(ROIContourSequence)
   t = tic;
   
   contours(i).ROIName = rtssheader.StructureSetROISequence.(ROIContourSequence{i}).ROIName;
@@ -21,20 +25,30 @@ for i = 1:length(ROIContourSequence)
     %% Loop through segments (slices)
     segments = cell(1,length(ContourSequence));
     for j = 1:length(ContourSequence)
+      %% Read points
       segments{j} = reshape(rtssheader.ROIContourSequence.(ROIContourSequence{i}).ContourSequence.(ContourSequence{j}).ContourData, ...
         3, rtssheader.ROIContourSequence.(ROIContourSequence{i}).ContourSequence.(ContourSequence{j}).NumberOfContourPoints)';
       
+      %% Make lattice
+      points = xfm \ [segments{j} ones(length(segments{j}), 1)]';
       start = xfm \ [segments{j}(1,:) 1]';
-      [x,y,z] = meshgrid(0:size(contours(i).Segmentation,1)-1, 0:size(contours(i).Segmentation,2)-1, round(start(3)));
+      minvox = max(floor(min(points, [], 2)), dimmin);
+      maxvox = min( ceil(max(points, [], 2)), dimmax);
+      minvox(3) = round(start(3));
+      maxvox(3) = round(start(3));
+      [x,y,z] = meshgrid(minvox(1):maxvox(1), minvox(2):maxvox(2), minvox(3):maxvox(3));
       points = xfm * [x(:) y(:) z(:) ones(size(x(:)))]';
       
+      %% Make binary image
       in = inpolygon(points(1,:), points(2,:), segments{j}(:,1), segments{j}(:,2));
-      contours(i).Segmentation(:,:,round(start(3))+1) = reshape(in, size(x));
+      contours(i).Segmentation((minvox(2):maxvox(2))+1, (minvox(1):maxvox(1))+1, (minvox(3):maxvox(3))+1) = reshape(in, size(x));
+      
     end
     contours(i).Points = vertcat(segments{:});
     
+    %% Save contour points in voxel coordinates
     contours(i).VoxPoints = xfm \ [contours(i).Points ones(length(contours(i).Points), 1)]';
-    contours(i).VoxPoints = contours(i).VoxPoints([2 1 3],:)' + 1;
+    contours(i).VoxPoints = contours(i).VoxPoints([2 1 3],:)';
     
   catch ME
     % Don't display errors about non-existent fields.
