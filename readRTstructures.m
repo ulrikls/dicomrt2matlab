@@ -13,9 +13,7 @@ contours = struct('ROIName', {}, 'Points', {}, 'VoxPoints', {}, 'Segmentation', 
 
 
 %% Loop through contours
-for i = 9%1:length(ROIContourSequence)
-  t = tic;
-  
+for i = 1:length(ROIContourSequence)
   contours(i).ROIName = rtssheader.StructureSetROISequence.(ROIContourSequence{i}).ROIName;
   contours(i).Segmentation = template;
   
@@ -57,5 +55,4 @@ for i = 9%1:length(ROIContourSequence)
     end
   end
   
-  toc(t)
 end
