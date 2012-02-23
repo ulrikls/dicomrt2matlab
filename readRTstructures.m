@@ -28,7 +28,7 @@ for i = 1:length(ROIContourSequence)
         3, rtssheader.ROIContourSequence.(ROIContourSequence{i}).ContourSequence.(ContourSequence{j}).NumberOfContourPoints)';
       
       %% Make lattice
-      points = xfm \ [segments{j} ones(length(segments{j}), 1)]';
+      points = xfm \ [segments{j} ones(size(segments{j},1), 1)]';
       start = xfm \ [segments{j}(1,:) 1]';
       minvox = max(floor(min(points, [], 2)), dimmin);
       maxvox = min( ceil(max(points, [], 2)), dimmax);
@@ -45,7 +45,7 @@ for i = 1:length(ROIContourSequence)
     contours(i).Points = vertcat(segments{:});
     
     %% Save contour points in voxel coordinates
-    contours(i).VoxPoints = xfm \ [contours(i).Points ones(length(contours(i).Points), 1)]';
+    contours(i).VoxPoints = xfm \ [contours(i).Points ones(size(contours(i).Points,1), 1)]';
     contours(i).VoxPoints = contours(i).VoxPoints([2 1 3],:)';
     
   catch ME

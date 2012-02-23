@@ -15,7 +15,7 @@ for i = 1:length(contours)
     %% Make triangulation lattice
     % Find range of meshgrid as range of points expanded to nearest voxels
     % and constrained by image dimensions.
-    gridpoints = xfm \ [contours(i).Points ones(length(contours(i).Points), 1)]';
+    gridpoints = xfm \ [contours(i).Points ones(size(contours(i).Points,1), 1)]';
     minvox = max(floor(min(gridpoints, [], 2)), dimmin);
     maxvox = min( ceil(max(gridpoints, [], 2)), dimmax);
     [x,y,z] = meshgrid(minvox(1):maxvox(1), minvox(2):maxvox(2), minvox(3):maxvox(3));
