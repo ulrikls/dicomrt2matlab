@@ -19,21 +19,33 @@ files_out = {};
 
 
 %% Load DICOM headers
+fprintf('Reading image headers...\n');
 rtssheader = dicominfo(rtssfile);
 imageheaders = loadDicomImageInfo(imagedir, rtssheader.StudyInstanceUID);
 
 
 %% Read contour sequences
+fprintf('Converting RT structures...\n');
 contours = readRTstructures(rtssheader, imageheaders);
 
 
 %% Save segmentations
 mnchdr = niak_read_hdr_minc(mncfile);
-[~, name, ~] = fileparts(mncfile);
+mnchdr.type = 'minc2';
+[~, dirname, ~] = fileparts(mncfile);
 
 for i = 1:length(contours)
-  files_out = {files_out [segdir filesep name filesep contours(i).ROIName '.mnc']};
+  name = [regexprep(contours(i).ROIName, '[^a-z0-9]', '_', 'ignorecase') '.mnc'];
+  mnchdr.file_name = [segdir filesep dirname filesep name];
+  mnchdr.info.history = sprintf('Generated from RT structure "%s", ROI "%s".\n', rtssfile, contours(i).ROIName);
+  fprintf('Writing "%s"...\n', mnchdr.file_name);
+  
+  if ~exist([segdir filesep dirname], 'file')
+    mkdir(segdir, dirname);
+  end
+  
   niak_write_minc(mnchdr, contours(i).Segmentation);
+  files_out = [files_out mnchdr.file_name];
 end
 
 
