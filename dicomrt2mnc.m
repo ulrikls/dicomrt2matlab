@@ -15,7 +15,7 @@ if isempty(segdir)
   segdir = imagedir;
 end
 
-files_out = {};
+files_out = struct([]);
 
 
 %% Load DICOM headers
@@ -35,17 +35,21 @@ mnchdr.type = 'minc2';
 [~, dirname, ~] = fileparts(mncfile);
 
 for i = 1:length(contours)
-  name = [regexprep(contours(i).ROIName, '[^a-z0-9]', '_', 'ignorecase') '.mnc'];
-  mnchdr.file_name = [segdir filesep dirname filesep name];
+  name = regexprep(contours(i).ROIName, '[^a-z0-9]', '_', 'ignorecase');
+  mnchdr.file_name = [segdir filesep dirname filesep name '.mnc'];
   mnchdr.info.history = sprintf('Generated from RT structure "%s", ROI "%s".\n', rtssfile, contours(i).ROIName);
-  fprintf('Writing "%s"...\n', mnchdr.file_name);
   
   if ~exist([segdir filesep dirname], 'file')
     mkdir(segdir, dirname);
   end
   
+  fprintf('Writing "%s"...\n', mnchdr.file_name);
   niak_write_minc(mnchdr, contours(i).Segmentation);
-  files_out = [files_out mnchdr.file_name];
+  files_out(i).mnc = mnchdr.file_name;
+  
+  files_out(i).tag = [segdir filesep dirname filesep name '.tag'];
+  fprintf('Writing "%s"...\n', files_out(i).tag);
+  niak_write_tags(files_out(i).tag, contours(i).Points);
 end
 
 

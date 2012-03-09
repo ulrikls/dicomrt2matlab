@@ -6,7 +6,7 @@ xfm = getAffineXfm(imgheaders);
 dimmin = [0 0 0 1]';
 dimmax = double([imgheaders{1}.Columns-1 imgheaders{1}.Rows-1 length(imgheaders)-1 1])';
 
-template = false([imgheaders{1}.Rows imgheaders{1}.Columns length(imgheaders)]);
+template = false([imgheaders{1}.Columns imgheaders{1}.Rows length(imgheaders)]);
 
 ROIContourSequence = fieldnames(rtssheader.ROIContourSequence);
 contours = struct('ROIName', {}, 'Points', {}, 'VoxPoints', {}, 'Segmentation', {});
@@ -39,14 +39,14 @@ for i = 1:length(ROIContourSequence)
       
       %% Make binary image
       in = inpolygon(points(1,:), points(2,:), segments{j}(:,1), segments{j}(:,2));
-      contours(i).Segmentation((minvox(2):maxvox(2))+1, (minvox(1):maxvox(1))+1, (minvox(3):maxvox(3))+1) = reshape(in, size(x));
+      contours(i).Segmentation((minvox(1):maxvox(1))+1, (minvox(2):maxvox(2))+1, (minvox(3):maxvox(3))+1) = permute(reshape(in, size(x)), [2 1]);
       
     end
     contours(i).Points = vertcat(segments{:});
     
     %% Save contour points in voxel coordinates
     contours(i).VoxPoints = xfm \ [contours(i).Points ones(size(contours(i).Points,1), 1)]';
-    contours(i).VoxPoints = contours(i).VoxPoints([2 1 3],:)';
+    contours(i).VoxPoints = contours(i).VoxPoints(1:3,:)';
     
   catch ME
     % Don't display errors about non-existent fields.
