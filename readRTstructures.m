@@ -23,24 +23,27 @@ for i = 1:length(ROIContourSequence)
     %% Loop through segments (slices)
     segments = cell(1,length(ContourSequence));
     for j = 1:length(ContourSequence)
-      %% Read points
-      segments{j} = reshape(rtssheader.ROIContourSequence.(ROIContourSequence{i}).ContourSequence.(ContourSequence{j}).ContourData, ...
-        3, rtssheader.ROIContourSequence.(ROIContourSequence{i}).ContourSequence.(ContourSequence{j}).NumberOfContourPoints)';
       
-      %% Make lattice
-      points = xfm \ [segments{j} ones(size(segments{j},1), 1)]';
-      start = xfm \ [segments{j}(1,:) 1]';
-      minvox = max(floor(min(points, [], 2)), dimmin);
-      maxvox = min( ceil(max(points, [], 2)), dimmax);
-      minvox(3) = round(start(3));
-      maxvox(3) = round(start(3));
-      [x,y,z] = meshgrid(minvox(1):maxvox(1), minvox(2):maxvox(2), minvox(3):maxvox(3));
-      points = xfm * [x(:) y(:) z(:) ones(size(x(:)))]';
-      
-      %% Make binary image
-      in = inpolygon(points(1,:), points(2,:), segments{j}(:,1), segments{j}(:,2));
-      contours(i).Segmentation((minvox(1):maxvox(1))+1, (minvox(2):maxvox(2))+1, (minvox(3):maxvox(3))+1) = permute(reshape(in, size(x)), [2 1]);
-      
+      if strcmp(rtssheader.ROIContourSequence.(ROIContourSequence{i}).ContourSequence.(ContourSequence{j}).ContourGeometricType, 'CLOSED_PLANAR')
+        %% Read points
+        segments{j} = reshape(rtssheader.ROIContourSequence.(ROIContourSequence{i}).ContourSequence.(ContourSequence{j}).ContourData, ...
+          3, rtssheader.ROIContourSequence.(ROIContourSequence{i}).ContourSequence.(ContourSequence{j}).NumberOfContourPoints)';
+        
+        %% Make lattice
+        points = xfm \ [segments{j} ones(size(segments{j},1), 1)]';
+        start = xfm \ [segments{j}(1,:) 1]';
+        minvox = max(floor(min(points, [], 2)), dimmin);
+        maxvox = min( ceil(max(points, [], 2)), dimmax);
+        minvox(3) = round(start(3));
+        maxvox(3) = round(start(3));
+        [x,y,z] = meshgrid(minvox(1):maxvox(1), minvox(2):maxvox(2), minvox(3):maxvox(3));
+        points = xfm * [x(:) y(:) z(:) ones(size(x(:)))]';
+        
+        %% Make binary image
+        in = inpolygon(points(1,:), points(2,:), segments{j}(:,1), segments{j}(:,2));
+        contours(i).Segmentation((minvox(1):maxvox(1))+1, (minvox(2):maxvox(2))+1, (minvox(3):maxvox(3))+1) = permute(reshape(in, size(x)), [2 1]);
+        
+      end
     end
     contours(i).Points = vertcat(segments{:});
     
