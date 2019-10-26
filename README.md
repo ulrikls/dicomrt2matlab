@@ -8,5 +8,5 @@ Authors:
 
 Jens T. Olesen, Aalborg University
 
-Ulrik Landberg Stephansen <usteph08@student.aau.dk>, Aalborg University
+Ulrik Taasti Landberg, <ulrikls@papio.dk>, Aalborg University
 
